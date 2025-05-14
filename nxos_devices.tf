@@ -18,6 +18,13 @@ locals {
       role      = "spine"
       managed   = true
       router_id = "10.0.0.1"
+      bgp = {
+        asn              = local.bgp_global.bgp_asn
+        vrf              = local.bgp_global.vrf
+        routing_loopback = local.bgp_global.routing_loopback
+        vtep_loopback    = local.bgp_global.vtep_loopback
+        rp_loopback      = local.bgp_global.rp_loopback
+      }
       interfaces = {
         loopback0 = {
           ip = "10.0.0.1/32"
@@ -36,6 +43,13 @@ locals {
       role      = "leaf"
       managed   = true
       router_id = "10.0.0.2"
+      bgp = {
+        asn              = local.bgp_global.bgp_asn
+        vrf              = local.bgp_global.vrf
+        routing_loopback = local.bgp_global.routing_loopback
+        vtep_loopback    = local.bgp_global.vtep_loopback
+        rp_loopback      = local.bgp_global.rp_loopback
+      }
       interfaces = {
         loopback0 = {
           ip = "10.0.0.2/32"
@@ -54,6 +68,13 @@ locals {
       role      = "leaf"
       managed   = true
       router_id = "10.0.0.3"
+      bgp = {
+        asn              = local.bgp_global.bgp_asn
+        vrf              = local.bgp_global.vrf
+        routing_loopback = local.bgp_global.routing_loopback
+        vtep_loopback    = local.bgp_global.vtep_loopback
+        rp_loopback      = local.bgp_global.rp_loopback
+      }
       interfaces = {
         loopback0 = {
           ip = "10.0.0.3/32"
