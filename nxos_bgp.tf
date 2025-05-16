@@ -2,23 +2,25 @@ locals {
   bgp_global = {
     bgp_asn          = 65000
     vrf              = "default"
-    routing_loopback = "loopback0"
-    vtep_loopback    = "loopback1"
-    rp_loopback      = "loopback250"
+    routing_loopback = "lo0"
+    vtep_loopback    = "lo1"
+    rp_loopback      = "lo250"
   }
 
 
   leaf_peers = flatten([
     for device in try(local.devices, []) : {
       name               = device.name
-      remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
+      remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["ip"]
+      # remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
     } if device.role == "spine"
   ])
 
   spine_peers = flatten([
     for device in try(local.devices, []) : {
       name               = device.name
-      remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
+      remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["ip"]
+      #remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
     } if device.role == "leaf"
   ])
 }
@@ -55,13 +57,13 @@ resource "nxos_bgp_vrf" "vxlan_bgp_vrf" {
   ]
 }
 
-resource "nxos_bgp_peer" "vxlan_bgp_spine_peers" {
-  for_each    = { for device in local.devices : device.name => device }
-  device      = each.value.name
-  asn         = each.value.bgp.asn
-  vrf         = each.value.bgp.vrf
-  address     = each.value.neighbor_ip
-  description = "Peer to ${each.value.neighbor_name}"
-  #   source_interface = local.underlay_routing_loopback_int
-  depends_on = [nxos_bgp_vrf.vxlan_bgp_vrf]
-}
+# resource "nxos_bgp_peer" "vxlan_bgp_spine_peers" {
+#   for_each    = { for device in local.devices : device.name => device }
+#   device      = each.value.name
+#   asn         = each.value.bgp.asn
+#   vrf         = each.value.bgp.vrf
+#   address     = each.value.neighbor_ip
+#   description = "Peer to ${each.value.neighbor_ip}"
+#   #   source_interface = local.underlay_routing_loopback_int
+#   depends_on = [nxos_bgp_vrf.vxlan_bgp_vrf]
+# }

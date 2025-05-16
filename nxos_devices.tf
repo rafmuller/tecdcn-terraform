@@ -25,17 +25,48 @@ locals {
         vtep_loopback    = local.bgp_global.vtep_loopback
         rp_loopback      = local.bgp_global.rp_loopback
       }
-      interfaces = {
-        loopback0 = {
-          ip = "10.0.0.1/32"
+      interfaces = [
+        {
+          id          = "lo0" # Must match output show int brief
+          description = "Routing Loopback"
+          layer       = "Layer3"
+          ip          = "10.0.0.1/32"
+          link_type   = "underlay"
         },
-        loopback1 = {
-          ip = "10.100.100.1/32"
+        {
+          id          = "lo1" # Must match output show int brief
+          description = "VTEP Loopback"
+          layer       = "Layer3"
+          ip          = "10.100.100.1/32"
+          link_type   = "underlay-lo"
         },
-        loopback250 = {
-          ip = "10.250.250.1/32"
+        {
+          id          = "lo250" # Must match output show int brief
+          description = "RP Loopback"
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.250.250.1/32"
+          link_type   = "underlay-lo"
+        },
+        {
+          id          = "eth1/1" # Must match output show int brief
+          description = "Uplink to Leaf1"
+          mtu         = 9216
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.1.1.1/30"
+          link_type   = "underlay-l3"
+        },
+        {
+          id          = "eth1/2" # Must match output show int brief
+          description = "Uplink to Leaf2"
+          mtu         = 9216
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.1.1.5/30"
+          link_type   = "underlay-l3"
         }
-      }
+      ]
     },
     {
       name      = "CLleaf1"
@@ -50,17 +81,40 @@ locals {
         vtep_loopback    = local.bgp_global.vtep_loopback
         rp_loopback      = local.bgp_global.rp_loopback
       }
-      interfaces = {
-        loopback0 = {
-          ip = "10.0.0.2/32"
+      interfaces = [
+        {
+          id          = "lo0" # Must match output show int brief
+          description = "Routing Loopback"
+          layer       = "Layer3"
+          ip          = "10.0.0.2/32"
+          link_type   = "underlay-lo"
         },
-        loopback1 = {
-          ip = "10.100.100.2/32"
+        {
+          id          = "lo1" # Must match output show int brief
+          description = "VTEP Loopback"
+          layer       = "Layer3"
+          ip          = "10.100.100.2/32"
+          link_type   = "underlay-lo"
         },
-        loopback250 = {
-          ip = "10.250.250.2/32"
-        }
-      }
+        {
+          id          = "lo250" # Must match output show int brief
+          description = "RP Loopback"
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.250.250.2/32"
+          link_type   = "underlay-lo"
+        },
+        {
+          id          = "eth1/1" # Must match output show int brief
+          description = "Uplink to Spine"
+          mtu         = 9216
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.1.1.5/30"
+          link_type   = "underlay-l3"
+        },
+
+      ]
     },
     {
       name      = "CLleaf2"
@@ -75,17 +129,39 @@ locals {
         vtep_loopback    = local.bgp_global.vtep_loopback
         rp_loopback      = local.bgp_global.rp_loopback
       }
-      interfaces = {
-        loopback0 = {
-          ip = "10.0.0.3/32"
+      interfaces = [
+        {
+          id          = "lo0" # Must match output show int brief
+          description = "Routing Loopback"
+          layer       = "Layer3"
+          ip          = "10.0.0.3/32"
+          link_type   = "underlay-lo"
         },
-        loopback1 = {
-          ip = "10.100.100.3/32"
+        {
+          id          = "lo1" # Must match output show int brief
+          description = "VTEP Loopback"
+          layer       = "Layer3"
+          ip          = "10.100.100.3/32"
+          link_type   = "underlay-lo"
         },
-        loopback250 = {
-          ip = "10.250.250.3/32"
-        }
-      }
-    },
+        {
+          id          = "lo50" # Must match output show int brief
+          description = "RP Loopback"
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.250.250.3/32"
+          link_type   = "underlay-lo"
+        },
+        {
+          id          = "eth1/1" # Must match output show int brief
+          description = "Uplink to Spine"
+          mtu         = 9216
+          speed       = "auto"
+          layer       = "Layer3"
+          ip          = "10.1.1.6/30"
+          link_type   = "underlay-l3"
+        },
+      ]
+    }
   ]
 }
