@@ -1,28 +1,27 @@
 locals {
-  bgp_global = {
-    bgp_asn          = 65000
-    vrf              = "default"
-    routing_loopback = "lo0"
-    vtep_loopback    = "lo1"
-    rp_loopback      = "lo250"
-  }
-
 
   leaf_peers = flatten([
-    for device in try(local.devices, []) : {
-      name               = device.name
-      remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["ip"]
-      # remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
-    } if device.role == "spine"
+    for conf_device in try(local.devices, []) : [
+      for device in try(local.devices, []) : {
+        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][device.bgp.routing_loopback]["peering_ip"])
+        name               = conf_device.name
+        remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["peering_ip"]
+        source_interface   = local.device_interface_map[device.name][device.bgp.routing_loopback]["id"]
+      } if device.role == "spine"
+    ] if conf_device.role == "leaf"
   ])
 
   spine_peers = flatten([
-    for device in try(local.devices, []) : {
-      name               = device.name
-      remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["ip"]
-      #remote_bgp_peer_ip = device.interfaces[device.bgp.routing_loopback]["ip"]
-    } if device.role == "leaf"
+    for conf_device in try(local.devices, []) : [
+      for device in try(local.devices, []) : {
+        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][device.bgp.routing_loopback]["peering_ip"])
+        name               = conf_device.name
+        remote_bgp_peer_ip = local.device_interface_map[device.name][device.bgp.routing_loopback]["peering_ip"]
+        source_interface   = local.device_interface_map[device.name][device.bgp.routing_loopback]["id"]
+      } if device.role == "leaf"
+    ] if conf_device.role == "spine"
   ])
+
 }
 
 output "leaf_peers" {
@@ -57,13 +56,52 @@ resource "nxos_bgp_vrf" "vxlan_bgp_vrf" {
   ]
 }
 
-# resource "nxos_bgp_peer" "vxlan_bgp_spine_peers" {
-#   for_each    = { for device in local.devices : device.name => device }
-#   device      = each.value.name
-#   asn         = each.value.bgp.asn
-#   vrf         = each.value.bgp.vrf
-#   address     = each.value.neighbor_ip
-#   description = "Peer to ${each.value.neighbor_ip}"
-#   #   source_interface = local.underlay_routing_loopback_int
-#   depends_on = [nxos_bgp_vrf.vxlan_bgp_vrf]
-# }
+resource "nxos_bgp_peer" "vxlan_bgp_spine_peers" {
+  for_each         = { for peer in local.spine_peers : peer.key => peer }
+  device           = each.value.name
+  asn              = local.bgp_global.bgp_asn
+  vrf              = "default"
+  address          = each.value.remote_bgp_peer_ip
+  description      = "Peer to ${each.value.remote_bgp_peer_ip}"
+  source_interface = each.value.source_interface
+  depends_on       = [nxos_bgp_vrf.vxlan_bgp_vrf]
+}
+
+resource "nxos_bgp_peer" "vxlan_bgp_leaf_peers" {
+  for_each         = { for peer in local.leaf_peers : peer.key => peer }
+  device           = each.value.name
+  asn              = local.bgp_global.bgp_asn
+  vrf              = "default"
+  address          = each.value.remote_bgp_peer_ip
+  description      = "Peer to ${each.value.remote_bgp_peer_ip}"
+  source_interface = each.value.source_interface
+  depends_on       = [nxos_bgp_vrf.vxlan_bgp_vrf]
+}
+
+resource "nxos_bgp_peer_address_family" "vxlan_vrf_spine_peer_address_family" {
+  for_each                = { for peer in local.spine_peers : peer.key => peer }
+  device                  = each.value.name
+  asn                     = local.bgp_global.bgp_asn
+  vrf                     = "default"
+  address                 = each.value.remote_bgp_peer_ip
+  address_family          = "l2vpn-evpn"
+  control                 = "rr-client"
+  send_community_extended = "enabled"
+  send_community_standard = "enabled"
+
+  depends_on = [nxos_bgp_peer.vxlan_bgp_leaf_peers]
+}
+
+resource "nxos_bgp_peer_address_family" "vxlan_vrf_leaf_peer_address_family" {
+  for_each                = { for peer in local.leaf_peers : peer.key => peer }
+  device                  = each.value.name
+  asn                     = local.bgp_global.bgp_asn
+  vrf                     = "default"
+  address                 = each.value.remote_bgp_peer_ip
+  address_family          = "l2vpn-evpn"
+  control                 = "rr-client"
+  send_community_extended = "enabled"
+  send_community_standard = "enabled"
+
+  depends_on = [nxos_bgp_peer.vxlan_bgp_leaf_peers]
+}

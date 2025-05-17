@@ -37,3 +37,9 @@ resource "nxos_vrf" "vxlan_vrf" {
   name        = each.value.name
   description = try(each.value.description, "Configured by Terraform")
 }
+
+resource "nxos_ipv4_vrf" "vxlan_ipv4_vrf_default" {
+  for_each = { for device in local.devices : device.name => device }
+  device   = each.value.name
+  name     = "default"
+}

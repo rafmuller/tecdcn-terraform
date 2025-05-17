@@ -31,6 +31,7 @@ locals {
           description = "Routing Loopback"
           layer       = "Layer3"
           ip          = "10.0.0.1/32"
+          peering_ip  = "10.0.0.1"
           link_type   = "underlay"
         },
         {
@@ -38,6 +39,7 @@ locals {
           description = "VTEP Loopback"
           layer       = "Layer3"
           ip          = "10.100.100.1/32"
+          peering_ip  = "10.100.100.1"
           link_type   = "underlay-lo"
         },
         {
@@ -46,6 +48,7 @@ locals {
           speed       = "auto"
           layer       = "Layer3"
           ip          = "10.250.250.1/32"
+          peering_ip  = "10.250.250.1"
           link_type   = "underlay-lo"
         },
         {
@@ -87,6 +90,7 @@ locals {
           description = "Routing Loopback"
           layer       = "Layer3"
           ip          = "10.0.0.2/32"
+          peering_ip  = "10.0.0.2"
           link_type   = "underlay-lo"
         },
         {
@@ -94,6 +98,7 @@ locals {
           description = "VTEP Loopback"
           layer       = "Layer3"
           ip          = "10.100.100.2/32"
+          peering_ip  = "10.100.100.2"
           link_type   = "underlay-lo"
         },
         {
@@ -102,6 +107,7 @@ locals {
           speed       = "auto"
           layer       = "Layer3"
           ip          = "10.250.250.2/32"
+          peering_ip  = "10.250.250.2"
           link_type   = "underlay-lo"
         },
         {
@@ -110,7 +116,7 @@ locals {
           mtu         = 9216
           speed       = "auto"
           layer       = "Layer3"
-          ip          = "10.1.1.5/30"
+          ip          = "10.1.1.2/30"
           link_type   = "underlay-l3"
         },
 
@@ -135,6 +141,7 @@ locals {
           description = "Routing Loopback"
           layer       = "Layer3"
           ip          = "10.0.0.3/32"
+          peering_ip  = "10.0.0.3"
           link_type   = "underlay-lo"
         },
         {
@@ -142,6 +149,7 @@ locals {
           description = "VTEP Loopback"
           layer       = "Layer3"
           ip          = "10.100.100.3/32"
+          peering_ip  = "10.100.100.3"
           link_type   = "underlay-lo"
         },
         {
@@ -150,6 +158,7 @@ locals {
           speed       = "auto"
           layer       = "Layer3"
           ip          = "10.250.250.3/32"
+          peering_ip  = "10.250.250.3"
           link_type   = "underlay-lo"
         },
         {

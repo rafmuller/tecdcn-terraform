@@ -43,6 +43,7 @@ resource "nxos_ipv4_interface" "vxlan_underlay_routed_ethernet_interfaces_ipv4" 
   device       = each.value.device
   vrf          = "default"
   interface_id = each.value.id
+  depends_on   = [nxos_physical_interface.vxlan_underlay_routed_ethernet_interfaces]
 }
 
 resource "nxos_ipv4_interface_address" "vxlan_underlay_routed_ethernet_interfaces_ipv4_address" {
@@ -52,4 +53,16 @@ resource "nxos_ipv4_interface_address" "vxlan_underlay_routed_ethernet_interface
   interface_id = each.value.id
   address      = each.value.ip
   depends_on   = [nxos_ipv4_interface.vxlan_underlay_routed_ethernet_interfaces_ipv4]
+}
+
+resource "nxos_physical_interface" "vxlan_underlay_routed_ethernet_interfaces_admin_state" {
+  for_each     = { for interface in local.vxlan_underlay_l3_interfaces : interface.key => interface }
+  device       = each.value.device
+  interface_id = each.value.id
+  admin_state  = each.value.admin_state
+  mtu          = each.value.mtu
+  speed        = each.value.speed
+  layer        = each.value.layer
+  description  = each.value.description
+  depends_on   = [nxos_ipv4_interface_address.vxlan_underlay_routed_ethernet_interfaces_ipv4_address]
 }
