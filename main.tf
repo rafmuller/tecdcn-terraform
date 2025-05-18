@@ -24,6 +24,10 @@ terraform {
       source  = "CiscoDevNet/nxos"
       version = "0.5.10"
     }
+    utils = {
+      source  = "netascode/utils"
+      version = ">= 0.2.6"
+    }
   }
 }
 

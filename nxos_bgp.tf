@@ -33,15 +33,14 @@ resource "nxos_bgp" "bgp" {
   for_each    = { for device in local.devices : device.name => device }
   device      = each.key
   admin_state = "enabled"
-
-  depends_on = [nxos_feature_bgp.bgp]
+  depends_on  = [nxos_feature_bgp.bgp]
 }
 
 resource "nxos_bgp_instance" "vxlan_bgp_instance" {
   for_each    = { for device in local.devices : device.name => device }
   device      = each.value.name
   admin_state = "enabled"
-  asn         = try(local.bgp_global.bgp_asn)
+  asn         = local.bgp_global.bgp_asn
   depends_on  = [nxos_bgp.bgp]
 }
 
@@ -61,7 +60,9 @@ resource "nxos_bgp_peer" "vxlan_bgp_spine_peers" {
   device           = each.value.name
   asn              = local.bgp_global.bgp_asn
   vrf              = "default"
+  peer_type        = "fabric-internal"
   address          = each.value.remote_bgp_peer_ip
+  remote_asn       = local.bgp_global.bgp_asn
   description      = "Peer to ${each.value.remote_bgp_peer_ip}"
   source_interface = each.value.source_interface
   depends_on       = [nxos_bgp_vrf.vxlan_bgp_vrf]
@@ -72,6 +73,8 @@ resource "nxos_bgp_peer" "vxlan_bgp_leaf_peers" {
   device           = each.value.name
   asn              = local.bgp_global.bgp_asn
   vrf              = "default"
+  peer_type        = "fabric-internal"
+  remote_asn       = local.bgp_global.bgp_asn
   address          = each.value.remote_bgp_peer_ip
   description      = "Peer to ${each.value.remote_bgp_peer_ip}"
   source_interface = each.value.source_interface
@@ -79,13 +82,13 @@ resource "nxos_bgp_peer" "vxlan_bgp_leaf_peers" {
 }
 
 resource "nxos_bgp_peer_address_family" "vxlan_vrf_spine_peer_address_family" {
-  for_each                = { for peer in local.spine_peers : peer.key => peer }
-  device                  = each.value.name
-  asn                     = local.bgp_global.bgp_asn
-  vrf                     = "default"
-  address                 = each.value.remote_bgp_peer_ip
-  address_family          = "l2vpn-evpn"
-  control                 = "rr-client"
+  for_each       = { for peer in local.spine_peers : peer.key => peer }
+  device         = each.value.name
+  asn            = local.bgp_global.bgp_asn
+  vrf            = "default"
+  address        = each.value.remote_bgp_peer_ip
+  address_family = "l2vpn-evpn"
+  #   control                 = "rr-client"
   send_community_extended = "enabled"
   send_community_standard = "enabled"
 
@@ -102,6 +105,5 @@ resource "nxos_bgp_peer_address_family" "vxlan_vrf_leaf_peer_address_family" {
   control                 = "rr-client"
   send_community_extended = "enabled"
   send_community_standard = "enabled"
-
-  depends_on = [nxos_bgp_peer.vxlan_bgp_leaf_peers]
+  depends_on              = [nxos_bgp_peer.vxlan_bgp_leaf_peers]
 }
