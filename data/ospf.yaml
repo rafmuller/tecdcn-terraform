@@ -1,0 +1,6 @@
+---
+vxlan-ciscolive:
+  ospf_global:
+    area_id: 0.0.0.0
+    vrf: default
+    instance_name: OSPF1

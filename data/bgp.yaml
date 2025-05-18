@@ -1,0 +1,8 @@
+---
+vxlan-ciscolive:
+  bgp_global:
+    bgp_asn: 65000
+    vrf: default
+    routing_loopback: lo0
+    vtep_loopback: lo1
+    rp_loopback: lo250

@@ -12,9 +12,9 @@
 #     |  |     |  |____ |  |\  \----.|  |\  \----./  _____  \  |  |     |  `--'  | |  |\  \----.|  |  |  | 
 #     |__|     |_______|| _| `._____|| _| `._____/__/     \__\ |__|      \______/  | _| `._____||__|  |__| 
 #
-# This is the main Terraform configuration file for managing Cisco Nexus devices. Here we define the 
-# required providers and the first set of variables for the NXOS provider 
-# to connect to each device.
+# This is the main terraform file that will load the VXLAN module. This files passes the information of 
+# the YAML files into the module that reads this and creates a single in memory data structure that is used to
+# that is read by the NXOS resources. 
 
 
 terraform {
@@ -31,11 +31,11 @@ terraform {
   }
 }
 
+module "vxlan" {
+  source = "./vxlan"
 
-provider "nxos" {
-  username = "admin"
-  password = "cisco"
-  devices  = local.devices
+  yaml_directories = ["data/"]
 }
+
 
 
