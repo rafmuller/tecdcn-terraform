@@ -17,20 +17,6 @@
 # that is read by the NXOS resources. 
 
 
-terraform {
-  required_version = ">= 1.5.7"
-  required_providers {
-    nxos = {
-      source  = "CiscoDevNet/nxos"
-      version = "0.5.10"
-    }
-    utils = {
-      source  = "netascode/utils"
-      version = ">= 0.2.6"
-    }
-  }
-}
-
 module "vxlan" {
   source = "./vxlan"
 

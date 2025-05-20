@@ -16,6 +16,13 @@ locals {
   bgp_global  = local.model.vxlan-ciscolive.bgp_global
   ospf_global = local.model.vxlan-ciscolive.ospf_global
 
+  devices1 = [for device in local.devices : {
+    name    = device.name
+    role    = device.role
+    managed = device.managed
+  }]
+
+
   device_interface_map = {
     for device in try(local.devices, []) : device.name => {
       for interface in try(device.interfaces, []) : interface.id => {
@@ -33,6 +40,12 @@ locals {
     }
   }
 }
+
+output "devices1" {
+  description = "List of devices"
+  value       = local.devices1
+}
+
 
 terraform {
   required_version = ">= 1.5.7"

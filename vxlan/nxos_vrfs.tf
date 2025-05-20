@@ -1,17 +1,4 @@
 locals {
-  # defined_vrfs = [
-  #   {
-  #     name        = "VRF1"
-  #     description = "Cisco Live VRF1"
-  #     vrf_id      = 10000
-  #   },
-  #   {
-  #     name        = "VRF2"
-  #     description = "Cisco Live VRF2"
-  #     vrf_id      = 20000
-  #   },
-  # ]
-
   defined_vrfs = local.model.vxlan-ciscolive.networks.vrfs
 
 

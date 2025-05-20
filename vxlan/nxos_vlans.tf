@@ -1,21 +1,4 @@
 locals {
-  # defined_vlans = [
-  #   {
-  #     name     = "VLAN-100"
-  #     vlan_id  = 100
-  #     vni      = 10000
-  #     vrf_name = "VRF1"
-  #     gw_ip    = "192.168.100.1/24"
-  #   },
-  #   {
-  #     name     = "VLAN-200"
-  #     vlan_id  = 200
-  #     vni      = 20000
-  #     vrf_name = "VRF2"
-  #     gw_ip    = "192.168.201.1/24"
-  #   },
-  # ]
-
   defined_vlans = local.model.vxlan-ciscolive.networks.vlans
 
   vlans = flatten([
