@@ -4,18 +4,24 @@ vxlan-ciscolive:
     vrfs:
       - name: 'VRF1'
         description: 'VRF1 for Cisco Live Seminar'
-        vrf_id: 10000
+        vni: 10000
+        attach:
+          - name: CLleaf1
       - name: 'VRF2'
         description: 'VRF2 for Cisco Live Seminar'
-        vrf_id: 20000
+        vni: 20000
+        attach:
+          - name: CLleaf2
     vlans:
       - name: 'VLAN-100'
         vlan_id: 100
-        vni: 10000
         vrf_name: 'VRF1'
         gw_ip: '192.168.100.1/24'
+        attach:
+          - name: CLleaf1
       - name: 'VLAN-200'
         vlan_id: 200
-        vni: 20000
         vrf_name: 'VRF2'
         gw_ip: '192.168.200.1/24'
+        attach:
+          - name: CLleaf2

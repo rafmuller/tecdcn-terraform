@@ -1,31 +1,36 @@
 locals {
-  defined_vrfs = local.model.vxlan-ciscolive.networks.vrfs
+  defined_vrfs = local.networks.vrfs
 
 
   vrfs = flatten([
-    for device in try(local.devices, []) : [
-      for vrf in try(local.defined_vrfs, []) : {
-        key         = format("%s-%s-%s", device.name, vrf.name, vrf.vrf_id)
+    for vrf in try(local.defined_vrfs, []) : [
+      for attach in try(vrf.attach, []) : {
+        key         = format("%s-%s-%s", attach.name, vrf.name, vrf.vni)
         name        = vrf.name
         description = vrf.description
-        encap       = vrf.vrf_id
-        device      = device
+        vni         = vrf.vni
+        device      = attach.name
       }
     ]
   ])
 }
 
+output "vrfs" {
+  description = "List of VRFs"
+  value       = local.vrfs
+}
+
 resource "nxos_vrf" "vxlan_vrf" {
-  for_each    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device      = each.value.device.name
-  encap       = "vxlan-${each.value.encap}"
+  for_each    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device      = each.value.device
+  encap       = "vxlan-${each.value.vni}"
   name        = each.value.name
   description = try(each.value.description, "Configured by Terraform")
 }
 
 resource "nxos_ipv4_vrf" "vxlan_ipv4_vrf" {
-  for_each   = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device     = each.value.device.name
+  for_each   = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device     = each.value.device
   name       = each.value.name
   depends_on = [nxos_vrf.vxlan_vrf]
 }
@@ -37,24 +42,24 @@ resource "nxos_ipv4_vrf" "vxlan_ipv4_vrf_default" {
 }
 
 resource "nxos_vrf_routing" "vxlan_vrf_routing" {
-  for_each            = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device              = each.value.device.name
+  for_each            = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device              = each.value.device
   vrf                 = each.value.name
   route_distinguisher = "rd:unknown:0:0"
   depends_on          = [nxos_vrf.vxlan_vrf]
 }
 
 resource "nxos_vrf_address_family" "vxlan_vrf_routing_ipv4_addr_family" {
-  for_each       = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device         = each.value.device.name
+  for_each       = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device         = each.value.device
   vrf            = each.value.name
   address_family = "ipv4-ucast"
   depends_on     = [nxos_vrf_routing.vxlan_vrf_routing]
 }
 
 resource "nxos_vrf_route_target_address_family" "vxlan_vrf_route_target_l2vpn_ipv4_address_family" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "l2vpn-evpn"
@@ -62,8 +67,8 @@ resource "nxos_vrf_route_target_address_family" "vxlan_vrf_route_target_l2vpn_ip
 }
 
 resource "nxos_vrf_route_target_address_family" "vxlan_vrf_route_target_ipv4ucast_address_family" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "ipv4-ucast"
@@ -71,8 +76,8 @@ resource "nxos_vrf_route_target_address_family" "vxlan_vrf_route_target_ipv4ucas
 }
 
 resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_l2evpn_ipv4_import" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "l2vpn-evpn"
@@ -81,8 +86,8 @@ resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_l2e
 }
 
 resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_l2evpn_ipv4_export" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "l2vpn-evpn"
@@ -91,8 +96,8 @@ resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_l2e
 }
 
 resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_ipv4ucast_import" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "ipv4-ucast"
@@ -101,8 +106,8 @@ resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_ipv
 }
 
 resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_ipv4ucast_export" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "ipv4-ucast"
@@ -111,8 +116,8 @@ resource "nxos_vrf_route_target_direction" "vxlan_vrf_route_target_direction_ipv
 }
 
 resource "nxos_vrf_route_target" "vxlan_vrf_route_target_l2evpn_ipv4_import" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "l2vpn-evpn"
@@ -122,8 +127,8 @@ resource "nxos_vrf_route_target" "vxlan_vrf_route_target_l2evpn_ipv4_import" {
 }
 
 resource "nxos_vrf_route_target" "vxlan_vrf_route_target_ipv4ucast_import" {
-  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf if vrf.device.role != "spine" }
-  device                      = each.value.device.name
+  for_each                    = { for vrf in try(local.vrfs, []) : vrf.key => vrf }
+  device                      = each.value.device
   vrf                         = each.value.name
   address_family              = "ipv4-ucast"
   route_target_address_family = "ipv4-ucast"

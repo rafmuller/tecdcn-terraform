@@ -1,21 +1,29 @@
 locals {
-  defined_vlans = local.model.vxlan-ciscolive.networks.vlans
+
+  vrf_map = { for vrf in try(local.networks.vrfs, []) : vrf.name => vrf }
+
 
   vlans = flatten([
-    for device in try(local.devices, []) : [
-      for vlan in try(local.defined_vlans, []) : {
-        key         = format("%s-%s-%s", device.name, vlan.vlan_id, vlan.vni)
+    for vlan in try(local.networks.vlans, []) : [
+      for attach in try(vlan.attach, []) : {
+        key         = format("%s-%s-%s", attach.name, vlan.vlan_id, local.vrf_map[vlan.vrf_name].vni)
         name        = vlan.name
         vlan_id     = vlan.vlan_id
         vrf_name    = vlan.vrf_name
-        vni         = vlan.vni
+        vni         = local.vrf_map[vlan.vrf_name].vni
         gw_ip       = vlan.gw_ip
-        device_name = device.name
-        device_role = device.role
+        device_name = attach.name
+        device_role = local.device_map[attach.name].role
       }
     ]
   ])
 }
+
+output "vlans" {
+  description = "List of VLANs"
+  value       = local.vlans
+}
+
 
 resource "nxos_bridge_domain" "vxlan_vlans" {
   for_each     = { for vlan in try(local.vlans, []) : vlan.key => vlan if vlan.device_role != "spine" }
@@ -25,6 +33,14 @@ resource "nxos_bridge_domain" "vxlan_vlans" {
   name         = each.value.name
   depends_on   = [nxos_vrf.vxlan_vrf]
 }
+
+#   __     __ ____   _____  __     __ _   _   ____                                    _
+#   \ \   / /|  _ \ |  ___| \ \   / /| \ | | / ___|  ___   __ _ _ __ ___   ___  _ __ | |_  ___
+#    \ \ / / | |_) || |_     \ \ / / |  \| | \___ \ / _ \ / _` | '_ ` _ \ / _ \| '_ \| __|/ __|
+#     \ V /  |  _ < |  _|     \ V /  | |\  |  ___) |  __/| (_| | | | | | |  __/| | | | |_ \__ \
+#      \_/   |_| \_\|_|        \_/   |_| \_| |____/ \___| \__, |_| |_| |_|\___||_| |_|\__||___/
+#                                                         |___/
+
 
 resource "nxos_svi_interface" "vxlan_svi_vrf_interface" {
   for_each     = { for vlan in try(local.vlans, []) : vlan.key => vlan if vlan.device_role != "spine" }
@@ -53,6 +69,15 @@ resource "nxos_ipv4_interface" "vxlan_svi_vrf_interface_ipv4" {
   forward      = "disabled"
   depends_on   = [nxos_svi_interface_vrf.vxlan_svi_vrf_interface_vrf]
 }
+
+#  _   _       _                        _     __     __ _   _   ____                                    _
+# | \ | | ___ | |_ __      __ ___  _ __| | __ \ \   / /| \ | | / ___|  ___   __ _ _ __ ___   ___  _ __ | |_  ___
+# |  \| |/ _ \| __|\ \ /\ / // _ \| '__| |/ /  \ \ / / |  \| | \___ \ / _ \ / _` | '_ ` _ \ / _ \| '_ \| __|/ __|
+# | |\  |  __/| |_  \ V  V /| (_) | |  |   <    \ V /  | |\  |  ___) |  __/| (_| | | | | | |  __/| | | | |_ \__ \
+# |_| \_|\___| \__|  \_/\_/  \___/|_|  |_|\_\    \_/   |_| \_| |____/ \___| \__, |_| |_| |_|\___||_| |_|\__||___/
+#                                                                           |___/
+
+
 
 resource "nxos_svi_interface" "vxlan_svi_network_interface" {
   for_each     = { for vlan in try(local.vlans, []) : vlan.key => vlan if vlan.device_role != "spine" }

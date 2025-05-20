@@ -15,13 +15,9 @@ locals {
   devices     = local.model.vxlan-ciscolive.devices
   bgp_global  = local.model.vxlan-ciscolive.bgp_global
   ospf_global = local.model.vxlan-ciscolive.ospf_global
+  networks    = local.model.vxlan-ciscolive.networks
 
-  devices1 = [for device in local.devices : {
-    name    = device.name
-    role    = device.role
-    managed = device.managed
-  }]
-
+  device_map = { for device in try(local.devices, []) : device.name => device }
 
   device_interface_map = {
     for device in try(local.devices, []) : device.name => {
@@ -29,7 +25,7 @@ locals {
         key         = format("%s-%s", device.name, interface.id)
         id          = interface.id
         name        = device.name
-        ip          = interface.ip
+        ip          = try(interface.ip, null)
         peering_ip  = try(interface.peering_ip, "")
         description = try(interface.description, "Configured by Terraform")
         mtu         = try(interface.mtu, 9216)
@@ -40,12 +36,6 @@ locals {
     }
   }
 }
-
-output "devices1" {
-  description = "List of devices"
-  value       = local.devices1
-}
-
 
 terraform {
   required_version = ">= 1.5.7"
