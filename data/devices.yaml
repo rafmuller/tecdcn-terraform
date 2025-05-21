@@ -73,7 +73,7 @@ vxlan-ciscolive:
           speed: auto
           layer: Layer2
           link_type: service-l2
-          l2_mode: access
+          l2_mode: trunk
           vlans:
             - vlan_id: 100
     - name: CLleaf2
