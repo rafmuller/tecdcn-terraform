@@ -16,6 +16,7 @@ locals {
   bgp_global  = local.model.vxlan-ciscolive.bgp_global
   ospf_global = local.model.vxlan-ciscolive.ospf_global
   networks    = local.model.vxlan-ciscolive.networks
+  global      = local.model.vxlan-ciscolive.global
 
   device_map = { for device in try(local.devices, []) : device.name => device }
 

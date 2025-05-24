@@ -10,6 +10,7 @@ locals {
         vlan_id     = vlan.vlan_id
         vrf_name    = vlan.vrf_name
         vni         = local.vrf_map[vlan.vrf_name].vni
+        vn-segment  = vlan.vn-segment
         gw_ip       = vlan.gw_ip
         device_name = attach.name
         device_role = local.device_map[attach.name].role

@@ -1,0 +1,7 @@
+---
+vxlan-ciscolive:
+  global:
+    save_config: false
+    routing_loopback: lo0
+    vtep_loopback: lo1
+    rp_loopback: lo250

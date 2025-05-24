@@ -6,113 +6,16 @@ vxlan-ciscolive:
       role: spine
       managed: true
       router_id: '10.0.0.1'
-      interfaces:
-        - id: 'lo0'
-          description: 'Routing Loopback'
-          layer: Layer3
-          ip: '10.0.0.1/32'
-          peering_ip: '10.0.0.1'
-          link_type: underlay-lo
-        - id: 'lo1'
-          description: 'VTEP Loopback'
-          layer: Layer3
-          ip: '10.100.100.1/32'
-          peering_ip: '10.100.100.1'
-          link_type: underlay-lo
-        - id: 'lo250'
-          description: 'RP Loopback'
-          ip: '10.250.250.1/32'
-          link_type: underlay-lo
-        - id: 'eth1/1'
-          description: 'Uplink to leaf1'
-          mtu: 9216
-          speed: auto
-          layer: Layer3
-          ip: '10.1.1.1/30'
-          link_type: underlay-l3
-        - id: 'eth1/2'
-          description: 'Uplink to leaf2'
-          mtu: 9216
-          speed: auto
-          layer: Layer3
-          ip: '10.1.1.5/30'
-          link_type: underlay-l3
+      rendezvous_point: true
+
     - name: CLleaf1
       url: 'https://10.15.37.101'
       role: leaf
       managed: true
       router_id: '10.0.0.2'
-      interfaces:
-        - id: 'lo0'
-          description: 'Routing Loopback'
-          layer: Layer3
-          ip: '10.0.0.2/32'
-          peering_ip: '10.0.0.2'
-          link_type: underlay-lo
-        - id: 'lo1'
-          description: 'VTEP Loopback'
-          layer: Layer3
-          ip: '10.100.100.2/32'
-          peering_ip: '10.100.100.2'
-          link_type: underlay-lo
-        - id: 'lo250'
-          description: 'RP Loopback'
-          ip: '10.250.250.2/32'
-          peering_ip: '10.250.250.2'
-          link_type: underlay-lo
-        - id: 'eth1/1'
-          description: 'Uplink to Spine'
-          mtu: 9216
-          speed: auto
-          layer: Layer3
-          ip: '10.1.1.2/30'
-          link_type: underlay-l3
-        - id: 'eth1/3'
-          description: 'AlpineLinuxVM'
-          mtu: 9216
-          speed: auto
-          layer: Layer2
-          link_type: service-l2
-          l2_mode: trunk
-          vlans:
-            - vlan_id: 100
+
     - name: CLleaf2
       url: 'https://10.15.37.102'
       role: leaf
       managed: true
       router_id: '10.0.0.3'
-      interfaces:
-        - id: 'lo0'
-          description: 'Routing Loopback'
-          layer: Layer3
-          ip: '10.0.0.3/32'
-          peering_ip: '10.0.0.3'
-          link_type: underlay-lo
-        - id: 'lo1'
-          description: 'VTEP Loopback'
-          layer: Layer3
-          ip: '10.100.100.3/32'
-          peering_ip: '10.100.100.3'
-          link_type: underlay-lo
-        - id: 'lo250'
-          description: 'RP Loopback'
-          ip: '10.250.250.3/32'
-          peering_ip: '10.250.250.3'
-          link_type: underlay-lo
-        - id: 'eth1/1'
-          description: 'Uplink to Spine'
-          mtu: 9216
-          speed: auto
-          layer: Layer3
-          ip: '10.1.1.6/30'
-          link_type: underlay-l3
-        - id: 'eth1/3'
-          description: 'AlpineLinuxVM'
-          mtu: 9216
-          speed: auto
-          layer: Layer2
-          link_type: service-l2
-          l2_mode: trunk
-          vlans:
-            - vlan_id: 100
-            - vlan_id: 200

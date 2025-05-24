@@ -3,10 +3,10 @@ locals {
   leaf_peers = flatten([
     for conf_device in try(local.devices, []) : [
       for device in try(local.devices, []) : {
-        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][local.bgp_global.routing_loopback]["peering_ip"])
+        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][local.global.routing_loopback]["peering_ip"])
         name               = conf_device.name
-        remote_bgp_peer_ip = local.device_interface_map[device.name][local.bgp_global.routing_loopback]["peering_ip"]
-        source_interface   = local.device_interface_map[device.name][local.bgp_global.routing_loopback]["id"]
+        remote_bgp_peer_ip = local.device_interface_map[device.name][local.global.routing_loopback]["peering_ip"]
+        source_interface   = local.device_interface_map[device.name][local.global.routing_loopback]["id"]
       } if device.role == "spine"
     ] if conf_device.role == "leaf"
   ])
@@ -14,10 +14,10 @@ locals {
   spine_peers = flatten([
     for conf_device in try(local.devices, []) : [
       for device in try(local.devices, []) : {
-        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][local.bgp_global.routing_loopback]["peering_ip"])
+        key                = format("%s-%s", conf_device.name, local.device_interface_map[device.name][local.global.routing_loopback]["peering_ip"])
         name               = conf_device.name
-        remote_bgp_peer_ip = local.device_interface_map[device.name][local.bgp_global.routing_loopback]["peering_ip"]
-        source_interface   = local.device_interface_map[device.name][local.bgp_global.routing_loopback]["id"]
+        remote_bgp_peer_ip = local.device_interface_map[device.name][local.global.routing_loopback]["peering_ip"]
+        source_interface   = local.device_interface_map[device.name][local.global.routing_loopback]["id"]
       } if device.role == "leaf"
     ] if conf_device.role == "spine"
   ])
@@ -106,4 +106,28 @@ resource "nxos_bgp_peer_address_family" "vxlan_vrf_leaf_peer_address_family" {
   send_community_extended = "enabled"
   send_community_standard = "enabled"
   depends_on              = [nxos_bgp_peer.vxlan_bgp_leaf_peers]
+}
+
+resource "nxos_bgp_vrf" "vxlan_bgp_network_vrf" {
+  for_each  = { for vrf in local.vrfs : vrf.key => vrf }
+  device    = each.value.device
+  asn       = local.bgp_global.bgp_asn
+  name      = each.value.name
+  router_id = each.value.router_id
+
+  depends_on = [
+    nxos_bgp_instance.vxlan_bgp_instance
+  ]
+}
+
+resource "nxos_bgp_address_family" "vxlan_bgp_network_ipv4_address_family" {
+  for_each             = { for vrf in local.vrfs : vrf.key => vrf }
+  address_family       = "ipv4-ucast"
+  device               = each.value.device
+  asn                  = local.bgp_global.bgp_asn
+  vrf                  = each.value.name
+  advertise_l2vpn_evpn = "enabled"
+  max_ecmp_paths       = 2
+
+  depends_on = [nxos_bgp_vrf.vxlan_bgp_network_vrf]
 }

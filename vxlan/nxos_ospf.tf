@@ -49,12 +49,12 @@ resource "nxos_ospf_interface" "ospf_interface_physical" {
   area          = local.ospf_global.area_id
   network_type  = "p2p"
   depends_on = [nxos_ospf_area.ospf_area,
-    nxos_ipv4_interface_address.loopback_ipv4_interface_address,
+    nxos_ipv4_interface_address.vxlan_underlay_routing_lo_ipv4_interface_address,
   nxos_ipv4_interface_address.vxlan_underlay_routed_ethernet_interfaces_ipv4_address]
 }
 
-resource "nxos_ospf_interface" "ospf_interface_loopback" {
-  for_each      = { for interface in local.vxlan_underlay_lo_interfaces : interface.key => interface }
+resource "nxos_ospf_interface" "ospf_interface_routing_loopback" {
+  for_each      = { for interface in local.vxlan_underlay_routing_lo_interfaces : interface.key => interface }
   device        = each.value.device
   instance_name = local.ospf_global.instance_name
   vrf_name      = local.ospf_global.vrf
@@ -62,6 +62,32 @@ resource "nxos_ospf_interface" "ospf_interface_loopback" {
   area          = local.ospf_global.area_id
   network_type  = "p2p"
   depends_on = [nxos_ospf_area.ospf_area,
-    nxos_ipv4_interface_address.loopback_ipv4_interface_address,
+    nxos_ipv4_interface_address.vxlan_underlay_routing_lo_ipv4_interface_address,
+  nxos_ipv4_interface_address.vxlan_underlay_routed_ethernet_interfaces_ipv4_address]
+}
+
+resource "nxos_ospf_interface" "ospf_interface_rp_loopback" {
+  for_each      = { for interface in local.vxlan_underlay_rp_lo_interfaces : interface.key => interface }
+  device        = each.value.device
+  instance_name = local.ospf_global.instance_name
+  vrf_name      = local.ospf_global.vrf
+  interface_id  = each.value.id
+  area          = local.ospf_global.area_id
+  network_type  = "p2p"
+  depends_on = [nxos_ospf_area.ospf_area,
+    nxos_ipv4_interface_address.vxlan_underlay_routing_lo_ipv4_interface_address,
+  nxos_ipv4_interface_address.vxlan_underlay_routed_ethernet_interfaces_ipv4_address]
+}
+
+resource "nxos_ospf_interface" "ospf_interface_vtep_loopback" {
+  for_each      = { for interface in local.vxlan_underlay_vtep_lo_interfaces : interface.key => interface }
+  device        = each.value.device
+  instance_name = local.ospf_global.instance_name
+  vrf_name      = local.ospf_global.vrf
+  interface_id  = each.value.id
+  area          = local.ospf_global.area_id
+  network_type  = "p2p"
+  depends_on = [nxos_ospf_area.ospf_area,
+    nxos_ipv4_interface_address.vxlan_underlay_routing_lo_ipv4_interface_address,
   nxos_ipv4_interface_address.vxlan_underlay_routed_ethernet_interfaces_ipv4_address]
 }

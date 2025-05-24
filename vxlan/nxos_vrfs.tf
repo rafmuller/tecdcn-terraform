@@ -9,6 +9,7 @@ locals {
         name        = vrf.name
         description = vrf.description
         vni         = vrf.vni
+        router_id   = local.device_map[attach.name].router_id
         device      = attach.name
       }
     ]

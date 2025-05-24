@@ -1,0 +1,30 @@
+---
+vxlan-ciscolive:
+  devices:
+    - name: CLspine1
+      interfaces:
+        - id: 'lo0'
+          description: 'Routing Loopback'
+          layer: Layer3
+          ip: '10.0.0.1/32'
+          peering_ip: '10.0.0.1'
+          link_type: underlay-lo
+        - id: 'lo250'
+          description: 'RP Loopback'
+          ip: '10.250.250.1/32'
+          layer: Layer3
+          link_type: underlay-lo
+        - id: 'eth1/1'
+          description: 'Uplink to leaf1'
+          mtu: 9216
+          speed: auto
+          ip: '10.1.1.1/30'
+          link_type: underlay-l3
+          admin_state: up
+        - id: 'eth1/2'
+          description: 'Uplink to leaf2'
+          mtu: 9216
+          speed: auto
+          ip: '10.1.1.5/30'
+          link_type: underlay-l3
+          admin_state: up

@@ -9,7 +9,7 @@
 
 
 resource "nxos_save_config" "save_config" {
-  for_each = { for device in local.devices : device.name => device }
+  for_each = { for device in local.devices : device.name => device if local.global.save_config }
   device   = each.key
   depends_on = [
     nxos_feature_bgp.bgp,

@@ -20,7 +20,7 @@
 module "vxlan" {
   source = "./vxlan"
 
-  yaml_directories = ["data/"]
+  yaml_directories = ["data/", "data/interfaces/"]
 }
 
 
