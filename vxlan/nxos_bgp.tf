@@ -86,6 +86,7 @@ resource "nxos_bgp_peer_address_family" "vxlan_vrf_spine_peer_address_family" {
   device         = each.value.name
   asn            = local.bgp_global.bgp_asn
   vrf            = "default"
+  control        = "rr-client"
   address        = each.value.remote_bgp_peer_ip
   address_family = "l2vpn-evpn"
   #   control                 = "rr-client"

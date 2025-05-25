@@ -139,7 +139,6 @@ resource "nxos_pim_static_rp" "vxlan_pim_static_rp" {
 }
 
 
-
 resource "nxos_pim_static_rp_group_list" "vxlan_pim_static_rp_group_list" {
   for_each   = { for device in local.devices : device.name => device }
   device     = each.value.name

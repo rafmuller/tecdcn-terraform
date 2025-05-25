@@ -30,4 +30,4 @@ vxlan-ciscolive:
           layer: Layer2
           link_type: service-l2
           l2_mode: trunk
-          vlans: '100,200'
+          vlans: '100-101,200'
