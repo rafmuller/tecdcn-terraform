@@ -5,3 +5,5 @@ vxlan-ciscolive:
     routing_loopback: lo0
     vtep_loopback: lo1
     rp_loopback: lo250
+    rp_loopback_ip: '10.250.250.1/32'
+    pim_group_address: '239.1.1.0/25'

@@ -38,6 +38,12 @@ locals {
   }
 }
 
+output "device_interface_map" {
+  description = "Map of devices and their interfaces"
+  value       = local.device_interface_map
+}
+
+
 terraform {
   required_version = ">= 1.5.7"
   required_providers {

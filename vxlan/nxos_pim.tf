@@ -17,15 +17,15 @@ locals {
     } if try(local.device_map[device.name]["rendezvous_point"], false)
   }
 
-  vxlan_underlay_lo_pim_interfaces = flatten([
-    for device in local.devices : [
-      for interface in device.interfaces : {
-        key       = format("%s/%s", device.name, interface.id)
-        device    = device.name
-        interface = interface.id
-      } if try(interface.link_type == "underlay-lo", false)
-    ]
-  ])
+  # vxlan_underlay_lo_pim_interfaces = flatten([
+  #   for device in local.devices : [
+  #     for interface in device.interfaces : {
+  #       key       = format("%s/%s", device.name, interface.id)
+  #       device    = device.name
+  #       interface = interface.id
+  #     } if try(interface.link_type == "underlay-lo", false)
+  #   ]
+  # ])
 }
 
 output "vxlan_rp_int_devices" {
@@ -105,7 +105,7 @@ resource "nxos_pim_interface" "vxlan_fl_l3_pim_interface" {
 }
 
 resource "nxos_pim_anycast_rp" "vxlan_pim_anycast_rp" {
-  for_each         = { for device in local.devices : device.name => device if device.rendezvous_point }
+  for_each         = { for device in local.devices : device.name => device }
   device           = each.value.name
   vrf_name         = "default"
   local_interface  = local.global.rp_loopback
@@ -113,37 +113,38 @@ resource "nxos_pim_anycast_rp" "vxlan_pim_anycast_rp" {
   depends_on       = [nxos_pim_vrf.vxlan_pim_vrf]
 }
 
-# resource "nxos_pim_anycast_rp_peer" "vxlan_pim_anycast_rp_peer" {
-#   for_each       = { for k, v in local.vxlan_rp_pim_anycast_peer : k => v }
-#   device         = each.value.device
-#   vrf_name       =  "default"
-#   address        = each.value.rp_lo_address      # This is the RP Loopback
-#   rp_set_address = each.value.routing_lo_address # This is the Routing Loopback
-#   depends_on     = [nxos_pim_anycast_rp.vxlan_pim_anycast_rp]
-# }
+resource "nxos_pim_anycast_rp_peer" "vxlan_pim_anycast_rp_peer" {
+  for_each       = { for device in local.devices : device.name => device if try(device.rendezvous_point, false) }
+  device         = each.value.name
+  vrf_name       = "default"
+  address        = local.global.rp_loopback_ip                                                      # This is the RP Loopback
+  rp_set_address = local.device_interface_map[each.value.name][local.global.routing_loopback]["ip"] # This is the Routing Loopback
+  # rp_set_address = each.value.routing_lo_address # This is the Routing Loopback
+  depends_on = [nxos_pim_anycast_rp.vxlan_pim_anycast_rp]
+}
 
-# resource "nxos_pim_static_rp_policy" "vxlan_pim_static_rp_policy" {
-#   for_each   = { for device in local.vxlan_pim_static_rp_devices : device.name => device }
-#   device     = each.value.name
-#   vrf_name   = each.value.vrf
-#   depends_on = [nxos_pim_vrf.vxlan_pim_vrf]
-# }
+resource "nxos_pim_static_rp_policy" "vxlan_pim_static_rp_policy" {
+  for_each   = { for device in local.devices : device.name => device }
+  device     = each.value.name
+  vrf_name   = "default"
+  depends_on = [nxos_pim_vrf.vxlan_pim_vrf]
+}
 
-# resource "nxos_pim_static_rp" "vxlan_pim_static_rp" {
-#   for_each   = { for device in local.vxlan_pim_static_rp_devices : device.name => device }
-#   device     = each.value.name
-#   vrf_name   = each.value.vrf
-#   address    = each.value.address
-#   depends_on = [nxos_pim_static_rp_policy.vxlan_pim_static_rp_policy]
-# }
+resource "nxos_pim_static_rp" "vxlan_pim_static_rp" {
+  for_each   = { for device in local.devices : device.name => device }
+  device     = each.value.name
+  vrf_name   = "default"
+  address    = local.global.rp_loopback_ip
+  depends_on = [nxos_pim_static_rp_policy.vxlan_pim_static_rp_policy]
+}
 
 
 
-# resource "nxos_pim_static_rp_group_list" "vxlan_pim_static_rp_group_list" {
-#   for_each   = { for device in local.vxlan_pim_static_rp_devices : device.name => device }
-#   device     = each.value.name
-#   vrf_name   = each.value.vrf
-#   rp_address = each.value.address
-#   address    = each.value.pim_group_address
-#   depends_on = [nxos_pim_static_rp.vxlan_pim_static_rp]
-# }
+resource "nxos_pim_static_rp_group_list" "vxlan_pim_static_rp_group_list" {
+  for_each   = { for device in local.devices : device.name => device }
+  device     = each.value.name
+  vrf_name   = "default"
+  rp_address = local.global.rp_loopback_ip
+  address    = local.global.pim_group_address
+  depends_on = [nxos_pim_static_rp.vxlan_pim_static_rp]
+}
