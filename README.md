@@ -18,7 +18,7 @@ This repository contains a module for deploying VXLAN/EVPN on Cisco Nexus device
 
 2. Navigate to the cloned directory:
    ```bash
-   cd tecdcn-2914-nxos-demo
+   cd tecdcn-terraform
    ```
 4. Initialize Terraform:
    ```bash
